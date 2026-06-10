@@ -30,7 +30,7 @@ const LandingPage = () => {
           className="mt-2 px-8 py-3 rounded-lg bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white font-semibold shadow-lg transition-colors duration-200 text-lg"
           onClick={() => navigate("/role-selection")}
         >
-          Get Started Aniket
+          Get Started Aniket and Yasin
         </button>
       </div>
     </div>
