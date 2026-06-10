@@ -1,0 +1,50 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/private_key
+          chmod 600 ~/.ssh/private_key
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+              -i ~/.ssh/private_key \
+              ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+
+          cd ~/NEXUSUpdated
+
+          git pull origin main
+
+          echo "=== Backend ==="
+          cd backend
+          npm install
+          npx prisma generate
+          npx prisma migrate deploy
+
+          pm2 restart backend || pm2 start index.js --name backend
+
+          echo "=== Frontend ==="
+          cd ../frontend
+
+          npm install
+          npm run build
+
+          pm2 restart frontend || pm2 start serve --name frontend -- -s dist -l 5173
+
+          pm2 save
+
+          EOF
